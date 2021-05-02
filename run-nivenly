@@ -1,0 +1,8 @@
+#!/bin/bash
+cd ~/nivenly.com
+hugo
+cd -
+sudo -E go run cmd/main.go \
+     --bind :1313 \
+     --dir /home/nova/nivenly.com/public/ \
+     --notfound /home/nova/nivenly.com/public/404.html

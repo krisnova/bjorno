@@ -3,7 +3,6 @@ package bjorno
 import (
 	"fmt"
 	"github.com/kris-nova/logger"
-
 	"net/http"
 	"os"
 	"path"
@@ -42,10 +41,15 @@ func (rh *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		requestPath = fmt.Sprintf("/%s", requestPath)
 	}
 	requestPath = path.Clean(r.URL.Path)
+	if requestPath == "/" {
+		// Special logic for root /
+		requestPath = "/index.html"
+		r.URL.Path = "index.html"
+	}
 
 	// Attempt to open the requested path
-	//file, err := rh.HTTPDir.Open(r.URL.Path)
-	_, err := rh.HTTPDir.Open(requestPath)
+	file, err := rh.HTTPDir.Open(requestPath)
+	//_, err := rh.HTTPDir.Open(requestPath)
 	// Error reading requested file
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -67,28 +71,24 @@ func (rh *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.Write(rh.Config.Content500)
 			return
 		}
-		// Success reading requested file
 	}else {
-		//
-		//
-		// Eventually we will need the custom parsing here
-
-	 	//
-		//
-		//bytes, err := io.ReadAll(file)
-		//if err != nil {
-		//	logger.Critical(err.Error())
-		//	w.WriteHeader(http.StatusInternalServerError)
-		//	w.Write(rh.Config.Content500)
-		//	return
-		//}
-		//// 200 Ok
-		//w.WriteHeader(http.StatusOK)
-		//w.Write(bytes)
-		//file.Close()
-		//return
-		defaultHandler := http.FileServer(http.Dir(rh.Config.ServeDirectory))
-		defaultHandler.ServeHTTP(w, r)
-
+		stat, err := file.Stat()
+		if err != nil {
+			logger.Warning(err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(rh.Config.Content500)
+			return
+		}
+		// -------------------------------------
+		interpolatedFile := InterpolateFile(file)
+		http.ServeContent(w, r, stat.Name(), stat.ModTime(), interpolatedFile)
+		// -------------------------------------
 	}
 }
+
+func InterpolateFile(file http.File) http.File {
+	// magical boops here
+	return file
+}
+
+
