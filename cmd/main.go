@@ -44,7 +44,7 @@ func GetApp() *cli.App {
 				Value:       "",
 				Usage:       "default 404 not found file",
 				Destination: &statusPath404,
-				EnvVar: "BJORNO400PATH",
+				EnvVar: "BJORNO404PATH",
 
 			},
 			&cli.StringFlag{
