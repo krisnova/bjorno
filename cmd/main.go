@@ -86,9 +86,9 @@ func GetApp() *cli.App {
 				if err != nil {
 					logger.Warning("Unable to load custom 500 path: %v", err)
 					logger.Info("Using default 500 content.")
-					cfg.Content404 = []byte(bjorno.StatusDefault500)
+					cfg.Content500 = []byte(bjorno.StatusDefault500)
 				}else {
-					cfg.Content404 = bytes
+					cfg.Content500 = bytes
 				}
 			}
 			// 5XX handling
