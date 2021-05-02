@@ -1,8 +1,9 @@
 package bjorno
 
 import (
-	"github.com/kris-nova/logger"
 	"testing"
+
+	"github.com/kris-nova/logger"
 )
 
 func TestRootExample(t *testing.T) {

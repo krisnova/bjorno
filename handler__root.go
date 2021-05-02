@@ -2,23 +2,24 @@ package bjorno
 
 import (
 	"fmt"
-	"github.com/kris-nova/logger"
 	"net/http"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/kris-nova/logger"
 )
 
 // RootHandler is a custom server that proxies whatever HTTPDir is set to to
 // the / (root) of the HTTP(s) server.
 type RootHandler struct {
-	Config *ServerConfig
+	Config  *ServerConfig
 	HTTPDir http.Dir
 }
 
 func NewRootHandler(cfg *ServerConfig) *RootHandler {
 	return &RootHandler{
-		Config: cfg,
+		Config:  cfg,
 		HTTPDir: http.Dir(cfg.ServeDirectory),
 	}
 }
@@ -37,7 +38,7 @@ func NewRootHandler(cfg *ServerConfig) *RootHandler {
 func (rh *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// System to mutate the request path
 	requestPath := r.URL.Path
-	if !strings.HasPrefix(requestPath, "/"){
+	if !strings.HasPrefix(requestPath, "/") {
 		requestPath = fmt.Sprintf("/%s", requestPath)
 	}
 	requestPath = path.Clean(r.URL.Path)
@@ -54,11 +55,11 @@ func (rh *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if os.IsNotExist(err) {
 			// 404 File not found
-			logger.Critical("404 looking up mutated path (%s) original path (%s)", requestPath, r.URL.Path)
+			logger.Warning("404 looking up mutated path (%s) original path (%s)", requestPath, r.URL.Path)
 			w.WriteHeader(http.StatusNotFound)
 			w.Write(rh.Config.Content404)
 			return
-		}else {
+		} else {
 			// 500 Internal server
 			logger.Warning("500 %v", err)
 			//
@@ -71,7 +72,7 @@ func (rh *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.Write(rh.Config.Content500)
 			return
 		}
-	}else {
+	} else {
 		stat, err := file.Stat()
 		if err != nil {
 			logger.Warning(err.Error())
@@ -90,5 +91,3 @@ func InterpolateFile(file http.File) http.File {
 	// magical boops here
 	return file
 }
-
-

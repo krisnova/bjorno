@@ -1,3 +1,9 @@
+# github.com/Ullaakut/nmap v2.0.2+incompatible
+## explicit
+# github.com/Ullaakut/nmap/v2 v2.1.1
+## explicit
+github.com/Ullaakut/nmap/v2
+github.com/Ullaakut/nmap/v2/pkg/osfamilies
 # github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d
 github.com/cpuguy83/go-md2man/v2/md2man
 # github.com/kris-nova/bjorno v0.0.0-20210422002005-fbfcb2f5510e
@@ -5,6 +11,8 @@ github.com/cpuguy83/go-md2man/v2/md2man
 # github.com/kris-nova/logger v0.2.1
 ## explicit
 github.com/kris-nova/logger
+# github.com/pkg/errors v0.9.1
+github.com/pkg/errors
 # github.com/russross/blackfriday/v2 v2.0.1
 github.com/russross/blackfriday/v2
 # github.com/shurcooL/sanitized_anchor_name v1.0.0
@@ -12,3 +20,5 @@ github.com/shurcooL/sanitized_anchor_name
 # github.com/urfave/cli v1.22.5
 ## explicit
 github.com/urfave/cli
+# golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
+golang.org/x/sync/errgroup

@@ -1,8 +1,9 @@
 package bjorno
 
 import (
-	"github.com/kris-nova/logger"
 	"net/http"
+
+	"github.com/kris-nova/logger"
 )
 
 type ServerConfig struct {
@@ -24,7 +25,7 @@ const (
 	StatusDefault404 string = `404 not found (bjorno)`
 	StatusDefault500 string = `500 server error (bjorno)`
 	StatusDefault5XX string = `5xx server error (bjorno)`
-	EndpointRoot string = "/"
+	EndpointRoot     string = "/"
 )
 
 // RunServer should be stateless by design
@@ -37,7 +38,7 @@ func RunServer(cfg *ServerConfig) error {
 	case 4:
 		logger.BitwiseLevel = logger.LogEverything
 	case 3:
-		logger.BitwiseLevel = logger.LogSuccess | logger.LogAlways | logger.LogCritical | logger.LogWarning  | logger.LogInfo
+		logger.BitwiseLevel = logger.LogSuccess | logger.LogAlways | logger.LogCritical | logger.LogWarning | logger.LogInfo
 	case 2:
 		logger.BitwiseLevel = logger.LogSuccess | logger.LogAlways | logger.LogCritical | logger.LogWarning
 	case 1:
@@ -51,24 +52,19 @@ func RunServer(cfg *ServerConfig) error {
 	logger.Info("Verbosity: %d", cfg.LogVerbosity)
 	logger.Info("Log Level: %d", logger.BitwiseLevel)
 
-
-	// We can have different endpoints that perform different
-	// ways.
-	//
-	//http.Handle("/api", apiHandler)
-	//http.Handle("/example", exampleHandler)
+	// Root (/) handler
 	if cfg.UseDefaultRootHandler {
 		logger.Info("Using default root handler")
 		http.Handle(EndpointRoot, http.FileServer(http.Dir(cfg.ServeDirectory)))
-	}else {
+	} else {
 		logger.Info("Using bjorno root handler")
 		http.Handle(EndpointRoot, NewRootHandler(cfg))
 	}
+
+	// Client (/client) handler
+	http.Handle("/client", NewClientHandler(cfg))
 
 	// Because we define custom handlers above we do not need to
 	// pass in a "generic" handler here.
 	return http.ListenAndServe(cfg.BindAddress, nil)
 }
-
-
-
