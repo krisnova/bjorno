@@ -65,7 +65,6 @@ func RunServer(cfg *ServerConfig) error {
 		http.Handle(EndpointRoot, NewRootHandler(cfg))
 	}
 
-
 	// Because we define custom handlers above we do not need to
 	// pass in a "generic" handler here.
 	return http.ListenAndServe(cfg.BindAddress, nil)

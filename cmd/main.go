@@ -37,24 +37,30 @@ func GetApp() *cli.App {
 				Value:       "/",
 				Usage:       "default directory string",
 				Destination: &cfg.ServeDirectory,
+				EnvVar: "BJORNODIR",
 			},
 			&cli.StringFlag{
 				Name:        "notfound",
 				Value:       "",
 				Usage:       "default 404 not found file",
 				Destination: &statusPath404,
+				EnvVar: "BJORNO400PATH",
+
 			},
 			&cli.StringFlag{
 				Name:        "servererror",
 				Value:       "",
 				Usage:       "default 500 server error file",
 				Destination: &statusPath500,
+				EnvVar: "BJORNO500PATH",
+
 			},
 			&cli.StringFlag{
 				Name:        "servererrorall",
 				Value:       "",
 				Usage:       "default 5XX server error file",
 				Destination: &statusPath5XX,
+				EnvVar: "BJORNO5XXPATH",
 			},
 			&cli.BoolFlag{
 				Name:        "usedefault",
