@@ -1,13 +1,19 @@
 package main
 
 import (
+	bjorno "github.com/kris-nova/bjorn"
 	"os"
-
-	"github.com/kris-nova/bjorno"
 
 	"github.com/urfave/cli"
 
 	"github.com/kris-nova/logger"
+)
+
+var (
+	statusPath404 string = ""
+	statusPath500 string = ""
+	statusPath5XX string = ""
+	useDefaultRootHandler bool = false
 )
 
 func GetApp() *cli.App {
@@ -16,8 +22,8 @@ func GetApp() *cli.App {
 		Flags: []cli.Flag{
 			&cli.IntFlag{
 				Name:        "verbose",
-				Value:       1,
-				Usage:       "verbosity level 0/1 on/off",
+				Value:       4,
+				Usage:       "verbosity level 0 (off) 4 (all)",
 				Destination: &cfg.LogVerbosity,
 			},
 			&cli.StringFlag{
@@ -32,8 +38,64 @@ func GetApp() *cli.App {
 				Usage:       "default directory string",
 				Destination: &cfg.ServeDirectory,
 			},
+			&cli.StringFlag{
+				Name:        "notfound",
+				Value:       "",
+				Usage:       "default 404 not found file",
+				Destination: &statusPath404,
+			},
+			&cli.StringFlag{
+				Name:        "servererror",
+				Value:       "",
+				Usage:       "default 500 server error file",
+				Destination: &statusPath500,
+			},
+			&cli.StringFlag{
+				Name:        "servererrorall",
+				Value:       "",
+				Usage:       "default 5XX server error file",
+				Destination: &statusPath5XX,
+			},
+			&cli.BoolFlag{
+				Name:        "usedefault",
+				Usage:       "use default filesystem handler",
+				Destination: &cfg.UseDefaultRootHandler,
+			},
 		},
 		Action: func(c *cli.Context) error {
+			// 404 handling
+			if statusPath404 != "" {
+				bytes, err := os.ReadFile(statusPath404)
+				if err != nil {
+					logger.Warning("Unable to load custom 404 path: %v", err)
+					logger.Info("Using default 404 content.")
+					cfg.Content404 = []byte(bjorno.StatusDefault404)
+				}else {
+					cfg.Content404 = bytes
+				}
+			}
+			// 500 handling
+			if statusPath500 != "" {
+				bytes, err := os.ReadFile(statusPath500)
+				if err != nil {
+					logger.Warning("Unable to load custom 500 path: %v", err)
+					logger.Info("Using default 500 content.")
+					cfg.Content404 = []byte(bjorno.StatusDefault500)
+				}else {
+					cfg.Content404 = bytes
+				}
+			}
+			// 5XX handling
+			if statusPath5XX != "" {
+				bytes, err := os.ReadFile(statusPath5XX)
+				if err != nil {
+					logger.Warning("Unable to load custom 5XX path: %v", err)
+					logger.Info("Using default 5XX content.")
+					cfg.Content5XX = []byte(bjorno.StatusDefault5XX)
+				}else {
+					cfg.Content5XX = bytes
+				}
+			}
 			return bjorno.RunServer(cfg)
 		},
 	}
