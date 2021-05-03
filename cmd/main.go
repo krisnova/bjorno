@@ -66,6 +66,7 @@ func GetApp() *cli.App {
 				Name:        "usedefault",
 				Usage:       "use default filesystem handler",
 				Destination: &cfg.UseDefaultRootHandler,
+				EnvVar: "BJORNOUSEDEFAULT",
 			},
 		},
 		Action: func(c *cli.Context) error {
