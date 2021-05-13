@@ -47,7 +47,7 @@ func (rh *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		requestPath = "/index.html"
 		r.URL.Path = "index.html"
 	}
-
+	//logger.Info("RequestPath: %s", requestPath)
 	// Attempt to open the requested path
 	file, err := rh.HTTPDir.Open(requestPath)
 	//_, err := rh.HTTPDir.Open(requestPath)
@@ -73,6 +73,7 @@ func (rh *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
+
 		stat, err := file.Stat()
 		if err != nil {
 			logger.Warning(err.Error())
@@ -80,7 +81,20 @@ func (rh *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.Write(rh.Config.Content500)
 			return
 		}
+		//logger.Info("Serving file: %s", stat.Name())
 		// -------------------------------------
+
+		if stat.IsDir() {
+			// Todo this whole method needs to be simplified
+			file, err = rh.HTTPDir.Open(path.Join(requestPath,"index.html"))
+			if err != nil {
+				logger.Warning(err.Error())
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write(rh.Config.Content500)
+				return
+			}
+		}
+
 		interpolatedFile := InterpolateFile(file)
 		http.ServeContent(w, r, stat.Name(), stat.ModTime(), interpolatedFile)
 		// -------------------------------------
@@ -88,6 +102,8 @@ func (rh *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func InterpolateFile(file http.File) http.File {
+
+
 	// magical boops here
 	return file
 }
