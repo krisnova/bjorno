@@ -11,7 +11,13 @@ type ServerConfig struct {
 	ServeDirectory string // /
 	BindAddress    string // localhost:80
 
+	DefaultIndexFiles []string
+
+	// UseDefaultRootHandler gives us an easy way
+	// to run the server in a more "concrete" and
+	// reliable way while we are in alpha dev stages.
 	UseDefaultRootHandler bool
+
 
 	// The Server can have custom global response content
 	// for specific HTTP Error codes
@@ -51,6 +57,7 @@ func RunServer(cfg *ServerConfig) error {
 	logger.Info("BindAddress: %s", cfg.BindAddress)
 	logger.Info("Verbosity: %d", cfg.LogVerbosity)
 	logger.Info("Log Level: %d", logger.BitwiseLevel)
+	logger.Info("Default Index Files: %s", cfg.DefaultIndexFiles)
 
 	// Root (/) handler
 	if cfg.UseDefaultRootHandler {

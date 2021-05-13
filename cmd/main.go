@@ -9,7 +9,13 @@ import (
 	"github.com/kris-nova/logger"
 )
 
+
+const (
+	DefaultDefaultFile = "index.html"
+)
+
 var (
+	defaultFiles = cli.StringSlice{}
 	statusPath404 string = ""
 	statusPath500 string = ""
 	statusPath5XX string = ""
@@ -68,6 +74,11 @@ func GetApp() *cli.App {
 				Destination: &cfg.UseDefaultRootHandler,
 				EnvVar: "BJORNOUSEDEFAULT",
 			},
+			&cli.StringSliceFlag{
+				Name: "default-files",
+				Usage: "the default files to look for (index.html)",
+				Value: &defaultFiles,
+			},
 		},
 		Action: func(c *cli.Context) error {
 			// 404 handling
@@ -103,7 +114,16 @@ func GetApp() *cli.App {
 					cfg.Content5XX = bytes
 				}
 			}
+
+			// Cast StringSlice to []string
+			if len(defaultFiles) < 1 {
+				defaultFiles.Set(DefaultDefaultFile)
+			}
+			cfg.DefaultIndexFiles = defaultFiles
+			// ----------------------------------------
 			return bjorno.RunServer(cfg)
+			// ----------------------------------------
+
 		},
 	}
 	return app

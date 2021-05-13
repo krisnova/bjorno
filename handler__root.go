@@ -24,86 +24,79 @@ func NewRootHandler(cfg *ServerConfig) *RootHandler {
 	}
 }
 
-// ServeHTTP is where the magic happens.
+// RequestPath is a deterministic function that
+// given an *http.Request will always return a
+// request path to "search" for.
 //
-// Here is where the custom logic begins
-// We build a "custom" rootHandler that implements
-// http.Handle so that we can add our own logic to the
-// base HTTP server.
-// This allows us to intercept new HTTP requests to the
-// server and do whatever we want to with them.
+// Note: this will *NOT* check an inode for a directory (isDir())
+// but will trust the request to identify a directory
+// by POSIX convention.
 //
-// The whole value of Bjorno is built on this handler's
-// ability to work "well"
-func (rh *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// System to mutate the request path
-	requestPath := r.URL.Path
+// If the path ends with "/" it's a directory...
+//
+func RequestPath(r *http.Request) string {
+	requestPath := path.Clean(r.URL.Path)
 	if !strings.HasPrefix(requestPath, "/") {
 		requestPath = fmt.Sprintf("/%s", requestPath)
 	}
-	requestPath = path.Clean(r.URL.Path)
-	if requestPath == "/" {
-		// Special logic for root /
-		requestPath = "/index.html"
-		r.URL.Path = "index.html"
-	}
-	//logger.Info("RequestPath: %s", requestPath)
-	// Attempt to open the requested path
-	file, err := rh.HTTPDir.Open(requestPath)
-	//_, err := rh.HTTPDir.Open(requestPath)
-	// Error reading requested file
+	return requestPath
+
+}
+
+// FileDirectoryPath will take a set of default file strings, a request path, and a valid http.Dir and
+// handles the logic for checking the filesystem for default files in directories such as index.html
+func FileDirectoryPath(defaultFiles []string, requestPath string, httpDir http.Dir) (http.File, os.FileInfo, error) {
+	var file http.File
+
+	file, err := httpDir.Open(requestPath)
 	if err != nil {
-		if os.IsNotExist(err) {
-			// 404 File not found
-			logger.Warning("404 looking up mutated path (%s) original path (%s)", requestPath, r.URL.Path)
-			w.WriteHeader(http.StatusNotFound)
-			w.Write(rh.Config.Content404)
-			return
-		} else {
-			// 500 Internal server
-			logger.Warning("500 %v", err)
-			//
-			// @kris-nova
-			//
-			// We should do a lot more when this happens...
-			//
-			//
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(rh.Config.Content500)
-			return
-		}
-	} else {
-
-		stat, err := file.Stat()
-		if err != nil {
-			logger.Warning(err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(rh.Config.Content500)
-			return
-		}
-		//logger.Info("Serving file: %s", stat.Name())
-		// -------------------------------------
-
-		if stat.IsDir() {
-			// Todo this whole method needs to be simplified
-			file, err = rh.HTTPDir.Open(path.Join(requestPath,"index.html"))
-			if err != nil {
-				logger.Warning(err.Error())
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write(rh.Config.Content500)
-				return
-			}
-		}
-
-		interpolatedFile := InterpolateFile(file)
-		http.ServeContent(w, r, stat.Name(), stat.ModTime(), interpolatedFile)
-		// -------------------------------------
+		return file, nil, fmt.Errorf("unable to open file %s: %v", requestPath, err)
 	}
+	stat, err := file.Stat()
+	if err != nil {
+		return file, nil, fmt.Errorf("unable to stat file %s: %v", requestPath, err)
+	}
+	if stat.IsDir() {
+		// Very important to loop literally so that we will always return
+		// the first file in the default files list found.
+		for i := 0; i < len(defaultFiles); i++ {
+			checkFile := defaultFiles[i]
+			// Attempt to open file
+			file, err := httpDir.Open(path.Join(requestPath, checkFile))
+			if file != nil {
+				// Found so let's break
+				stat, err = file.Stat()
+				if err != nil {
+					return file, stat, fmt.Errorf("unable to stat file: %s", err)
+				}
+				return file, stat, nil
+			}
+			logger.Debug(err.Error())
+		}
+	}
+	if file == nil {
+		return file, stat, fmt.Errorf("unable to find file or default file in list")
+	}
+	return file, stat, nil
+}
+
+func (rh *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// System to calculate "RequestPath"
+	requestPath := RequestPath(r)
+	// System to hit the filesystem and calculate default files in dirs
+	file, stat, err := FileDirectoryPath(rh.Config.DefaultIndexFiles, requestPath, rh.HTTPDir)
+	if err != nil {
+		// 404
+		w.Write(rh.Config.Content404)
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	logger.Info("Request: %s", stat.Name())
+	interpolatedFile := InterpolateFile(file)
+	http.ServeContent(w, r, stat.Name(), stat.ModTime(), interpolatedFile)
 }
 
 func InterpolateFile(file http.File) http.File {
-
-
 	// magical boops here
 	return file
 }
