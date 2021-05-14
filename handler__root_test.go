@@ -1,6 +1,8 @@
 package bjorno
 
 import (
+	"net/http"
+	"net/url"
 	"testing"
 
 	"github.com/kris-nova/logger"
@@ -21,4 +23,64 @@ func TestRootExample(t *testing.T) {
 	//if err != nil {
 	//	t.Errorf("Error running server: %v", err)
 	//}
+}
+
+func TestRequestPath(t *testing.T) {
+
+	cases := map[string]string{
+		"/":      "/",
+		".":      "/",
+		"//":     "/",
+		"/beeps": "/beeps",
+		"boops":  "/boops",
+		"":       "/",
+	}
+	for input, expected := range cases {
+		r := &http.Request{
+			URL: &url.URL{
+				Path: input,
+			},
+		}
+		actual := RequestPath(r)
+		if actual != expected {
+			t.Errorf("actual (%s) != expected (%s)", actual, expected)
+		}
+	}
+}
+
+// TestFileDirectory will test FileDirectoryPath which will only
+// succeed if a file is in fact found.
+func TestFileDirectory(t *testing.T) {
+	defaultFiles := []string{"index.html", "index.beeps", "index.boops"}
+	httpDir := http.Dir("testWebsite")
+	happyCases := map[string]string{
+		"/":            "index.html",
+		"":             "index.html",
+		"beeps.boops":  "beeps.boops",
+		"/beeps.boops": "beeps.boops",
+		"/meeps":       "index.html",
+	}
+	// Should all be happy
+	for input, expected := range happyCases {
+		_, stat, err := FileDirectoryPath(defaultFiles, input, httpDir)
+		if err != nil {
+			t.Errorf("error FileDirectoryPath: %v", err)
+		}
+		actual := stat.Name()
+		if actual != expected {
+			t.Errorf("actual (%s) != expected (%s)", actual, expected)
+		}
+	}
+	sadCases := []string{
+		"beeps",
+		"moops",
+	}
+	// Should all be sad
+	for _, input := range sadCases {
+		_, _, err := FileDirectoryPath(defaultFiles, input, httpDir)
+		if err == nil {
+
+			t.Errorf("expected err for input: %s", input)
+		}
+	}
 }

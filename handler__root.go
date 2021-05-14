@@ -35,7 +35,10 @@ func NewRootHandler(cfg *ServerConfig) *RootHandler {
 // If the path ends with "/" it's a directory...
 //
 func RequestPath(r *http.Request) string {
+	// Getting dot dot right
 	requestPath := path.Clean(r.URL.Path)
+	// Remove all periods "."
+	requestPath = strings.Replace(requestPath, ".", "", -1)
 	if !strings.HasPrefix(requestPath, "/") {
 		requestPath = fmt.Sprintf("/%s", requestPath)
 	}
@@ -45,9 +48,10 @@ func RequestPath(r *http.Request) string {
 
 // FileDirectoryPath will take a set of default file strings, a request path, and a valid http.Dir and
 // handles the logic for checking the filesystem for default files in directories such as index.html
+//
+// This will only return a file and stat if the file calculated actually exists.
 func FileDirectoryPath(defaultFiles []string, requestPath string, httpDir http.Dir) (http.File, os.FileInfo, error) {
 	var file http.File
-
 	file, err := httpDir.Open(requestPath)
 	if err != nil {
 		return file, nil, fmt.Errorf("unable to open file %s: %v", requestPath, err)
@@ -73,6 +77,8 @@ func FileDirectoryPath(defaultFiles []string, requestPath string, httpDir http.D
 			}
 			logger.Debug(err.Error())
 		}
+		// If we get here we have a directory but no default files are found
+		return file, stat, fmt.Errorf("default file not found in directory: %s", requestPath)
 	}
 	if file == nil {
 		return file, stat, fmt.Errorf("unable to find file or default file in list")
@@ -87,8 +93,8 @@ func (rh *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	file, stat, err := FileDirectoryPath(rh.Config.DefaultIndexFiles, requestPath, rh.HTTPDir)
 	if err != nil {
 		// 404
-		w.Write(rh.Config.Content404)
 		w.WriteHeader(http.StatusNotFound)
+		w.Write(rh.Config.Content404)
 		return
 	}
 	logger.Info("Request: %s", stat.Name())
