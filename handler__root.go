@@ -37,8 +37,10 @@ func NewRootHandler(cfg *ServerConfig) *RootHandler {
 func RequestPath(r *http.Request) string {
 	// Getting dot dot right
 	requestPath := path.Clean(r.URL.Path)
-	// Remove all periods "."
-	requestPath = strings.Replace(requestPath, ".", "", -1)
+	// Replace "." with "/"
+	if requestPath == "." {
+		requestPath = "/"
+	}
 	if !strings.HasPrefix(requestPath, "/") {
 		requestPath = fmt.Sprintf("/%s", requestPath)
 	}

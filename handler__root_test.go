@@ -28,12 +28,13 @@ func TestRootExample(t *testing.T) {
 func TestRequestPath(t *testing.T) {
 
 	cases := map[string]string{
-		"/":      "/",
-		".":      "/",
-		"//":     "/",
-		"/beeps": "/beeps",
-		"boops":  "/boops",
-		"":       "/",
+		"/":         "/",
+		".":         "/",
+		"//":        "/",
+		"style.css": "/style.css",
+		"/beeps":    "/beeps",
+		"boops":     "/boops",
+		"":          "/",
 	}
 	for input, expected := range cases {
 		r := &http.Request{
