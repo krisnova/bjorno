@@ -28,9 +28,9 @@ func GetClientMeta(r *http.Request) *ClientMeta {
 	clientAddr := r.Header.Get("X-Real-IP")
 	logger.Info("Client: %s", clientAddr)
 	for name, values := range r.Header {
-		logger.Info(name)
-		logger.Info(strings.Join(values, ","))
-		logger.Info("----")
+		//logger.Info(name)
+		//logger.Info(strings.Join(values, ","))
+		//logger.Info("----")
 	}
 
 	clientMeta := &ClientMeta{
