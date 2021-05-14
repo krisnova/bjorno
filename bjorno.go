@@ -1,13 +1,35 @@
+// Copyright © 2021 Kris Nóva <kris@nivenly.com>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package bjorno
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/kris-nova/logger"
 )
 
+const (
+	StatusDefault404 string = `404 not found (bjorno)`
+	StatusDefault500 string = `500 server error (bjorno)`
+	StatusDefault5XX string = `5xx server error (bjorno)`
+	EndpointRoot     string = "/"
+)
+
 // ServerConfig is the WebServer configuration component of bjorno
-// This struct holds all of the WebSerber bits (pun intended).
+// This struct holds all of the WebServer bits (pun intended).
 //
 // We should only expose fields we would like a consumer of
 // Bjorno to use.
@@ -40,14 +62,9 @@ type ServerConfig struct {
 	Content404 []byte
 	Content500 []byte
 	Content5XX []byte
-}
 
-const (
-	StatusDefault404 string = `404 not found (bjorno)`
-	StatusDefault500 string = `500 server error (bjorno)`
-	StatusDefault5XX string = `5xx server error (bjorno)`
-	EndpointRoot     string = "/"
-)
+	Endpoints []*Endpoint
+}
 
 // Runtime is exactly what you think it is. This is the runtime
 // component of Bjorno and is most likely the place everything
@@ -70,6 +87,7 @@ const (
 //
 // In other words, V should never break Bjorno. So have fun.
 func Runtime(cfg *ServerConfig, V RuntimeProgram) error {
+	// Dealing with legacy logger noise
 	v := cfg.LogVerbosity
 	switch v {
 	case 4:
@@ -86,23 +104,24 @@ func Runtime(cfg *ServerConfig, V RuntimeProgram) error {
 		logger.BitwiseLevel = logger.LogEverything
 	}
 
+	// Debug
 	logger.Info("ServeDirectory: %s", cfg.ServeDirectory)
 	logger.Info("BindAddress: %s", cfg.BindAddress)
 	logger.Info("Verbosity: %d", cfg.LogVerbosity)
 	logger.Info("Log Level: %d", logger.BitwiseLevel)
 	logger.Info("Default Index Files: %s", cfg.DefaultIndexFiles)
 
-	// Root (/) handler
-	if cfg.UseDefaultRootHandler {
-		logger.Info("Using default root handler")
-		http.Handle(EndpointRoot, http.FileServer(http.Dir(cfg.ServeDirectory)))
-	} else {
-		logger.Info("Using bjorno root handler")
-		http.Handle(EndpointRoot, NewRootHandler(cfg, V))
+	// Endpoints
+	for _, endpoint := range cfg.Endpoints {
+		if endpoint.Pattern == "/" {
+			return fmt.Errorf("Unable to use custom / root handler. Use the standard library if you want to do this. Go away.")
+		}
+		logger.Info("Registering endpoint: %s", endpoint.Pattern)
+		http.Handle(endpoint.Pattern, endpoint.Handler)
 	}
 
-	// Client (/client) handler
-	//http.Handle("/client", NewClientHandler(cfg))
+	logger.Info("Registering root endpoint: /")
+	http.Handle("/", NewRootHandler(cfg, V))
 
 	// Because we define custom handlers above we do not need to
 	// pass in a "generic" handler here.
@@ -116,4 +135,9 @@ type RuntimeProgram interface {
 	Refresh()
 	Lock()
 	Unlock()
+}
+
+type Endpoint struct {
+	Pattern string
+	Handler http.Handler
 }
