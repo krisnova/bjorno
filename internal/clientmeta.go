@@ -1,4 +1,4 @@
-package lib
+package internal
 
 import (
 	"context"
@@ -28,20 +28,19 @@ func GetClientMeta(r *http.Request) *ClientMeta {
 	clientAddr := r.Header.Get("X-Real-IP")
 	logger.Info("Client: %s", clientAddr)
 	//for name, values := range r.Header {
-		//logger.Info(name)
-		//logger.Info(strings.Join(values, ","))
-		//logger.Info("----")
+	//logger.Info(name)
+	//logger.Info(strings.Join(values, ","))
+	//logger.Info("----")
 	//}
 
 	clientMeta := &ClientMeta{
-		RemoteAddress: clientAddr,
+		RemoteAddress:   clientAddr,
 		PublicPortProbe: map[string]string{},
 	}
 	if cached, ok := cache[clientAddr]; ok {
 		logger.Debug("Cached client meta for: %s", clientAddr)
 		clientMeta = cached
 	}
-
 
 	// Each client meta has a scanner
 	go func() {

@@ -11,6 +11,17 @@ type ServerConfig struct {
 	ServeDirectory string // /
 	BindAddress    string // localhost:80
 
+	// InterpolateExtensions are the names
+	// of the interpolation file extensions
+	// to parse.
+	//
+	// Usually this is something like ".html"
+	InterpolateExtensions []string
+
+	// DefaultIndexFiles are the names of file
+	// to look for if a directory is passed.
+	//
+	// Usually this is something like "index.html".
 	DefaultIndexFiles []string
 
 	// UseDefaultRootHandler gives us an easy way

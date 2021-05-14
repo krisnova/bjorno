@@ -7,6 +7,10 @@ import (
 	"path"
 	"strings"
 
+	"github.com/kris-nova/bjorn/internal"
+
+	"github.com/kris-nova/bjorn/interpolate"
+
 	"github.com/kris-nova/logger"
 )
 
@@ -88,6 +92,7 @@ func FileDirectoryPath(defaultFiles []string, requestPath string, httpDir http.D
 	return file, stat, nil
 }
 
+// ServeHTTP is the main root serve method
 func (rh *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// System to calculate "RequestPath"
 	requestPath := RequestPath(r)
@@ -95,16 +100,34 @@ func (rh *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	file, stat, err := FileDirectoryPath(rh.Config.DefaultIndexFiles, requestPath, rh.HTTPDir)
 	if err != nil {
 		// 404
+		logger.Warning(err.Error())
 		w.WriteHeader(http.StatusNotFound)
 		w.Write(rh.Config.Content404)
 		return
 	}
-	//logger.Info("Request: %s", stat.Name())
-	interpolatedFile := InterpolateFile(file)
-	http.ServeContent(w, r, stat.Name(), stat.ModTime(), interpolatedFile)
-}
-
-func InterpolateFile(file http.File) http.File {
-	// magical boops here
-	return file
+	shouldInterpolate := false
+	for _, extension := range rh.Config.InterpolateExtensions {
+		if strings.HasSuffix(stat.Name(), extension) {
+			shouldInterpolate = true
+			break
+		}
+	}
+	if !shouldInterpolate {
+		// We shouldn't interpolate so we just serve the regular old file
+		// in the spirit of the Go standard library.
+		http.ServeContent(w, r, stat.Name(), stat.ModTime(), file)
+		return
+	}
+	iFile := interpolate.NewFile(file)
+	iFile, err = iFile.Interpolate(internal.GetValues())
+	if err != nil {
+		// 500
+		logger.Warning(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(rh.Config.Content500)
+		return
+	}
+	logger.Debug("Interpolating %s", stat.Name())
+	w.WriteHeader(http.StatusOK)
+	w.Write(iFile.Bytes())
 }

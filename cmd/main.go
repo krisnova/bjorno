@@ -1,25 +1,27 @@
 package main
 
 import (
-	bjorno "github.com/kris-nova/bjorn"
 	"os"
+
+	bjorno "github.com/kris-nova/bjorn"
 
 	"github.com/urfave/cli"
 
 	"github.com/kris-nova/logger"
 )
 
-
 const (
-	DefaultDefaultFile = "index.html"
+	DefaultDefaultFile           = "index.html"
+	DefaultInterpolateExtensions = ".html"
 )
 
 var (
-	defaultFiles = cli.StringSlice{}
-	statusPath404 string = ""
-	statusPath500 string = ""
-	statusPath5XX string = ""
-	useDefaultRootHandler bool = false
+	defaultFiles                 = cli.StringSlice{}
+	interpolateExtensions        = cli.StringSlice{}
+	statusPath404         string = ""
+	statusPath500         string = ""
+	statusPath5XX         string = ""
+	useDefaultRootHandler bool   = false
 )
 
 func GetApp() *cli.App {
@@ -43,40 +45,43 @@ func GetApp() *cli.App {
 				Value:       "/",
 				Usage:       "default directory string",
 				Destination: &cfg.ServeDirectory,
-				EnvVar: "BJORNODIR",
+				EnvVar:      "BJORNODIR",
 			},
 			&cli.StringFlag{
 				Name:        "notfound",
 				Value:       "",
 				Usage:       "default 404 not found file",
 				Destination: &statusPath404,
-				EnvVar: "BJORNO404PATH",
-
+				EnvVar:      "BJORNO404PATH",
 			},
 			&cli.StringFlag{
 				Name:        "servererror",
 				Value:       "",
 				Usage:       "default 500 server error file",
 				Destination: &statusPath500,
-				EnvVar: "BJORNO500PATH",
-
+				EnvVar:      "BJORNO500PATH",
 			},
 			&cli.StringFlag{
 				Name:        "servererrorall",
 				Value:       "",
 				Usage:       "default 5XX server error file",
 				Destination: &statusPath5XX,
-				EnvVar: "BJORNO5XXPATH",
+				EnvVar:      "BJORNO5XXPATH",
 			},
 			&cli.BoolFlag{
 				Name:        "usedefault",
 				Usage:       "use default filesystem handler",
 				Destination: &cfg.UseDefaultRootHandler,
-				EnvVar: "BJORNOUSEDEFAULT",
+				EnvVar:      "BJORNOUSEDEFAULT",
 			},
 			&cli.StringSliceFlag{
-				Name: "default-files",
+				Name:  "default-files",
 				Usage: "the default files to look for (index.html)",
+				Value: &defaultFiles,
+			},
+			&cli.StringSliceFlag{
+				Name:  "interpolate-extensions",
+				Usage: "extensions to interpolate (.html)",
 				Value: &defaultFiles,
 			},
 		},
@@ -88,7 +93,7 @@ func GetApp() *cli.App {
 					logger.Warning("Unable to load custom 404 path: %v", err)
 					logger.Info("Using default 404 content.")
 					cfg.Content404 = []byte(bjorno.StatusDefault404)
-				}else {
+				} else {
 					cfg.Content404 = bytes
 				}
 			}
@@ -99,7 +104,7 @@ func GetApp() *cli.App {
 					logger.Warning("Unable to load custom 500 path: %v", err)
 					logger.Info("Using default 500 content.")
 					cfg.Content500 = []byte(bjorno.StatusDefault500)
-				}else {
+				} else {
 					cfg.Content500 = bytes
 				}
 			}
@@ -110,11 +115,15 @@ func GetApp() *cli.App {
 					logger.Warning("Unable to load custom 5XX path: %v", err)
 					logger.Info("Using default 5XX content.")
 					cfg.Content5XX = []byte(bjorno.StatusDefault5XX)
-				}else {
+				} else {
 					cfg.Content5XX = bytes
 				}
 			}
-
+			// Cast StringSlice to []string
+			if len(interpolateExtensions) < 1 {
+				interpolateExtensions.Set(DefaultInterpolateExtensions)
+			}
+			cfg.InterpolateExtensions = interpolateExtensions
 			// Cast StringSlice to []string
 			if len(defaultFiles) < 1 {
 				defaultFiles.Set(DefaultDefaultFile)
