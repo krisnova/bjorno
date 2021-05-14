@@ -27,11 +27,11 @@ func GetClientMeta(r *http.Request) *ClientMeta {
 	// so we use that for our reverse port probe.
 	clientAddr := r.Header.Get("X-Real-IP")
 	logger.Info("Client: %s", clientAddr)
-	for name, values := range r.Header {
+	//for name, values := range r.Header {
 		//logger.Info(name)
 		//logger.Info(strings.Join(values, ","))
 		//logger.Info("----")
-	}
+	//}
 
 	clientMeta := &ClientMeta{
 		RemoteAddress: clientAddr,
