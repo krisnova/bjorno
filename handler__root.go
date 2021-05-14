@@ -99,7 +99,7 @@ func (rh *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Write(rh.Config.Content404)
 		return
 	}
-	logger.Info("Request: %s", stat.Name())
+	//logger.Info("Request: %s", stat.Name())
 	interpolatedFile := InterpolateFile(file)
 	http.ServeContent(w, r, stat.Name(), stat.ModTime(), interpolatedFile)
 }
