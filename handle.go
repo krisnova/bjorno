@@ -119,8 +119,15 @@ func (rh *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// We get here we KNOW we must interpolate
-	// So the first thing we do is start a refresh
-	go rh.V.Refresh()
+	// So the first thing we do is start a refresh.
+	// Refresh will always be locked so that we
+	// can always call .Values for the client
+	// without waiting or locking.
+	go func() {
+		rh.V.Lock()
+		rh.V.Refresh()
+		rh.V.Unlock()
+	}()
 	// Now we can HOPE to see any changes as we interpolate
 	// First let's begin our memory shifting.
 	iFile := interpolate.NewFile(file)

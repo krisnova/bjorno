@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"sync"
 	"testing"
 
 	"github.com/kris-nova/logger"
@@ -18,9 +19,26 @@ var (
 	}
 )
 
+type EmptyProgram struct {
+	mutex sync.Mutex
+}
+
+func (v *EmptyProgram) Values() interface{} {
+	return v
+}
+
+func (v *EmptyProgram) Refresh() {
+}
+func (v *EmptyProgram) Lock() {
+	v.mutex.Lock()
+}
+func (v *EmptyProgram) Unlock() {
+	v.mutex.Unlock()
+}
+
 func TestMain(m *testing.M) {
 	go func() {
-		err := RunServer(TestConfig)
+		err := Runtime(TestConfig, &EmptyProgram{})
 		if err != nil {
 			logger.Critical("Error starting test server: %v", err)
 			os.Exit(1)
