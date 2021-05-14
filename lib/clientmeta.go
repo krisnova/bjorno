@@ -35,6 +35,7 @@ func GetClientMeta(r *http.Request) *ClientMeta {
 
 	clientMeta := &ClientMeta{
 		RemoteAddress: clientAddr,
+		PublicPortProbe: map[string]string{},
 	}
 	if cached, ok := cache[clientAddr]; ok {
 		logger.Debug("Cached client meta for: %s", clientAddr)
