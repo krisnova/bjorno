@@ -68,7 +68,7 @@ func RunServer(cfg *ServerConfig) error {
 	}
 
 	// Client (/client) handler
-	// http.Handle("/client", NewClientHandler(cfg))
+	 http.Handle("/client", NewClientHandler(cfg))
 
 	// Because we define custom handlers above we do not need to
 	// pass in a "generic" handler here.

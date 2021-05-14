@@ -1,4 +1,4 @@
-package dynamic
+package lib
 
 import (
 	"context"
@@ -22,17 +22,25 @@ type ClientMeta struct {
 var cache = map[string]*ClientMeta{}
 
 func GetClientMeta(r *http.Request) *ClientMeta {
-	// Key: r.RemoteAddr
+	// When coming from a reverse proxy we pass the
+	// original host IP via a proxy header "X-Real-IP"
+	// so we use that for our reverse port probe.
+	clientAddr := r.Header.Get("X-Real-IP")
+	logger.Info("Client: %s", clientAddr)
+
 	clientMeta := &ClientMeta{
-		RemoteAddress: r.RemoteAddr,
+		RemoteAddress: clientAddr,
 	}
-	if cached, ok := cache[r.RemoteAddr]; ok {
-		logger.Debug("Cached client meta for: %s", r.RemoteAddr)
+	if cached, ok := cache[clientAddr]; ok {
+		logger.Debug("Cached client meta for: %s", clientAddr)
 		clientMeta = cached
 	}
+
+
+	// Each client meta has a scanner
 	go func() {
 		scanner, err := nmap.NewScanner(
-			nmap.WithTargets(RemoteAddrToHost(r.RemoteAddr)),
+			nmap.WithTargets(RemoteAddrToHost(clientAddr)),
 			nmap.WithContext(context.TODO()),
 		)
 		if err != nil {
@@ -49,7 +57,7 @@ func GetClientMeta(r *http.Request) *ClientMeta {
 			return
 		}
 		clientMeta.PortScan = results
-		logger.Debug("Client (%s) hosts: %d", r.RemoteAddr, len(results.Hosts))
+		logger.Debug("Client (%s) hosts: %d", clientAddr, len(results.Hosts))
 		for _, host := range results.Hosts {
 			logger.Debug("Host (%s) ports: %d", host.Comment, len(host.Ports))
 			for _, port := range host.Ports {
@@ -58,7 +66,7 @@ func GetClientMeta(r *http.Request) *ClientMeta {
 		}
 		clientMeta.LastPortScan = time.Now()
 	}()
-	cache[r.RemoteAddr] = clientMeta
+	cache[clientAddr] = clientMeta
 	return clientMeta
 }
 

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/kris-nova/bjorn/dynamic"
+	"github.com/kris-nova/bjorn/lib"
 	"github.com/kris-nova/logger"
 )
 
@@ -23,7 +23,7 @@ func NewClientHandler(cfg *ServerConfig) *ClientHandler {
 
 // ServeHTTP is where the magic happens.
 func (rh *ClientHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	clientMeta := dynamic.GetClientMeta(r)
+	clientMeta := lib.GetClientMeta(r)
 	bytes, err := json.Marshal(clientMeta)
 	if err != nil {
 		logger.Warning(err.Error())
