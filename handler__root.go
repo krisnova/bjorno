@@ -7,8 +7,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/kris-nova/bjorn/internal"
-
 	"github.com/kris-nova/bjorn/interpolate"
 
 	"github.com/kris-nova/logger"
@@ -19,12 +17,14 @@ import (
 type RootHandler struct {
 	Config  *ServerConfig
 	HTTPDir http.Dir
+	V       RuntimeProgram
 }
 
-func NewRootHandler(cfg *ServerConfig) *RootHandler {
+func NewRootHandler(cfg *ServerConfig, V RuntimeProgram) *RootHandler {
 	return &RootHandler{
 		Config:  cfg,
 		HTTPDir: http.Dir(cfg.ServeDirectory),
+		V:       V,
 	}
 }
 
@@ -118,8 +118,15 @@ func (rh *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.ServeContent(w, r, stat.Name(), stat.ModTime(), file)
 		return
 	}
+	// We get here we KNOW we must interpolate
+	// So the first thing we do is start a refresh
+	go rh.V.Refresh()
+	// Now we can HOPE to see any changes as we interpolate
+	// First let's begin our memory shifting.
 	iFile := interpolate.NewFile(file)
-	iFile, err = iFile.Interpolate(internal.GetValues())
+	// Now let's interpolate with our values.
+	logger.Debug("Interpolating %s", stat.Name())
+	iFile, err = iFile.Interpolate(rh.V.Values())
 	if err != nil {
 		// 500
 		logger.Warning(err.Error())
@@ -127,7 +134,6 @@ func (rh *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Write(rh.Config.Content500)
 		return
 	}
-	logger.Debug("Interpolating %s", stat.Name())
 	w.WriteHeader(http.StatusOK)
 	w.Write(iFile.Bytes())
 }

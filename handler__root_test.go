@@ -10,7 +10,7 @@ import (
 
 func TestRootExample(t *testing.T) {
 	cfg := &ServerConfig{
-		ServeDirectory: "testWebsite",
+		ServeDirectory: "bjorno.com",
 		BindAddress:    ":1314",
 		LogVerbosity:   1,
 	}
@@ -33,7 +33,7 @@ func TestRequestPath(t *testing.T) {
 		"//":        "/",
 		"style.css": "/style.css",
 		"/beeps":    "/beeps",
-		"boops":     "/boops",
+		"beeps":     "/beeps",
 		"":          "/",
 	}
 	for input, expected := range cases {
@@ -53,12 +53,11 @@ func TestRequestPath(t *testing.T) {
 // succeed if a file is in fact found.
 func TestFileDirectory(t *testing.T) {
 	defaultFiles := []string{"index.html", "index.beeps", "index.boops"}
-	httpDir := http.Dir("testWebsite")
+	httpDir := http.Dir("bjorno.com")
 	happyCases := map[string]string{
 		"/":            "index.html",
 		"":             "index.html",
-		"beeps.boops":  "beeps.boops",
-		"/beeps.boops": "beeps.boops",
+		"/beeps/boops": "boops",
 		"/meeps":       "index.html",
 	}
 	// Should all be happy
@@ -74,7 +73,6 @@ func TestFileDirectory(t *testing.T) {
 	}
 	sadCases := []string{
 		"beeps",
-		"moops",
 	}
 	// Should all be sad
 	for _, input := range sadCases {

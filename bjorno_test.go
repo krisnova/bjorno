@@ -11,7 +11,7 @@ import (
 
 var (
 	TestConfig = &ServerConfig{
-		ServeDirectory: "./testWebsite",
+		ServeDirectory: "./bjorno.com",
 		BindAddress:    "localhost:1313",
 		LogVerbosity:   1,
 		Content404:     []byte("oopsie"),
