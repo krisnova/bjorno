@@ -12,12 +12,21 @@ Bjorno serves static content, and also offers the following features.
 
 You can build a custom application in Go and vendor bjorno directly into your program.
 
-#### create a sample website
+#### sample/index.html
 
-```bash
-mkdir sample
-touch sample/index.html
-echo "hello!" > sample/index.html
+```html
+<html>
+<head>
+<title>{{ .Name }}</title>
+</head>
+
+<body>
+<div align="center">
+    <h2>Welcome to {{ .Name }}</h2>
+    <p>My nickname is {{ .Nickname }}</p>
+</div>
+</body>
+</html>
 ```
 
 #### main.go
