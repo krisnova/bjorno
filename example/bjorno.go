@@ -17,7 +17,7 @@ package main
 import (
 	"sync"
 
-	bjorno "github.com/kris-nova/bjorn"
+	bjorno "github.com/kris-nova/bjorno"
 )
 
 func main() {

@@ -21,7 +21,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/kris-nova/bjorn/interpolate"
+	"github.com/kris-nova/bjorno/interpolate"
 
 	"github.com/kris-nova/logger"
 )

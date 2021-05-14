@@ -17,7 +17,7 @@ package main
 import (
 	"os"
 
-	bjorno "github.com/kris-nova/bjorn"
+	bjorno "github.com/kris-nova/bjorno"
 
 	"github.com/urfave/cli"
 
