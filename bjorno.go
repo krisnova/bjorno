@@ -34,9 +34,17 @@ const (
 // We should only expose fields we would like a consumer of
 // Bjorno to use.
 type ServerConfig struct {
-	LogVerbosity   int    // 3
-	ServeDirectory string // /
-	BindAddress    string // localhost:80
+
+	// LogVerbosity is the verbosity for the krisnova.Logger
+	LogVerbosity int
+
+	// ServeDirectory is a local directory you are hoping to serve.
+	// Relative directories are supported.
+	ServeDirectory string //
+
+	// BindAddress configures where you would like your server to
+	// listen to.
+	BindAddress string // localhost:80
 
 	// InterpolateExtensions are the names
 	// of the interpolation file extensions
@@ -63,6 +71,7 @@ type ServerConfig struct {
 	Content500 []byte
 	Content5XX []byte
 
+	// Endpoints is our endpoints we hope to use.
 	Endpoints []*Endpoint
 }
 
@@ -113,7 +122,7 @@ func Runtime(cfg *ServerConfig, V RuntimeProgram) error {
 
 	// Endpoints
 	for _, endpoint := range cfg.Endpoints {
-		if endpoint.Pattern == "/" {
+		if endpoint.Pattern == EndpointRoot {
 			return fmt.Errorf("Unable to use custom / root handler. Use the standard library if you want to do this. Go away.")
 		}
 		logger.Info("Registering endpoint: %s", endpoint.Pattern)
@@ -121,7 +130,7 @@ func Runtime(cfg *ServerConfig, V RuntimeProgram) error {
 	}
 
 	logger.Info("Registering root endpoint: /")
-	http.Handle("/", NewRootHandler(cfg, V))
+	http.Handle(EndpointRoot, NewRootHandler(cfg, V))
 
 	// Because we define custom handlers above we do not need to
 	// pass in a "generic" handler here.
@@ -131,12 +140,29 @@ func Runtime(cfg *ServerConfig, V RuntimeProgram) error {
 // RuntimeProgram is the program that Bjorno will run to interpolate your web pages.
 // Have fun with your programs and be safe kiddos!
 type RuntimeProgram interface {
+
+	// Values is where you should put the things you want to be interpolated.
+	//
+	// This is the program itself that will be passed to template.Execute()
 	Values() interface{}
+
+	// Refresh is called slightly before your program is referenced.
+	//
+	// We will lock this for you - all you need to do is write the code that
+	// will refresh whatever Values() returns. Probably just hitting a cache
+	// or a web service or database and saving the results in your programs
+	// cache.
 	Refresh()
+
+	// Lock should lock a mutex.
 	Lock()
+
+	// Unlock should unlock a mutext.
 	Unlock()
 }
 
+// Endpoint is just a plain old endpoint - feel free to add these for other services
+// you might want to use.
 type Endpoint struct {
 	Pattern string
 	Handler http.Handler
