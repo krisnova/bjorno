@@ -13,7 +13,10 @@ func main() {
 			".html",
 		},
 		BindAddress:    ":1313",
-		ServeDirectory: "bjorno.com",
+		ServeDirectory: "../bjorno.com",
+		DefaultIndexFiles: []string{
+			"index.html",
+		},
 	}
 	bjorno.Runtime(cfg, &BjornoProgram{
 		Name:     "Björn",
