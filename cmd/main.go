@@ -130,7 +130,7 @@ func GetApp() *cli.App {
 			}
 			cfg.DefaultIndexFiles = defaultFiles
 			// ----------------------------------------
-			return bjorno.RunServer(cfg)
+			return bjorno.Runtime(cfg, &bjorno.EmptyProgram{})
 			// ----------------------------------------
 
 		},

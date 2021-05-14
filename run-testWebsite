@@ -1,7 +1,0 @@
-#!/bin/bash
-cd ~/nivenly.com
-hugo
-cd -
-sudo -E go run cmd/main.go \
-     --bind :1313 \
-     --dir bjorno.com
