@@ -65,7 +65,7 @@ func GetClientMeta(r *http.Request) *ClientMeta {
 		clientMeta.PortScan = results
 		logger.Debug("Client (%s) hosts: %d", clientAddr, len(results.Hosts))
 		for _, host := range results.Hosts {
-			logger.Debug("Host (%s) ports: %d", host.Comment, len(host.Ports))
+			logger.Debug("Host (%s) ports: %d", clientAddr, len(host.Ports))
 			for _, port := range host.Ports {
 				clientMeta.PublicPortProbe[fmt.Sprintf("%d %s", port.ID, port.Protocol)] = fmt.Sprintf("[%s] %s", port.State, port.Service)
 			}
