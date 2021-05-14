@@ -18,7 +18,6 @@ type ServerConfig struct {
 	// reliable way while we are in alpha dev stages.
 	UseDefaultRootHandler bool
 
-
 	// The Server can have custom global response content
 	// for specific HTTP Error codes
 	// These can be defined at runtime.
@@ -69,7 +68,7 @@ func RunServer(cfg *ServerConfig) error {
 	}
 
 	// Client (/client) handler
-	http.Handle("/client", NewClientHandler(cfg))
+	// http.Handle("/client", NewClientHandler(cfg))
 
 	// Because we define custom handlers above we do not need to
 	// pass in a "generic" handler here.
