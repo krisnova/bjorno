@@ -16,6 +16,7 @@ package main
 
 import (
 	"sync"
+	"net/http"
 
 	bjorno "github.com/kris-nova/bjorno"
 )
@@ -45,7 +46,7 @@ type BjornoProgram struct {
 	mutex    sync.Mutex
 }
 
-func (v *BjornoProgram) Values() interface{} {
+func (v *BjornoProgram) Values(req *http.Request) interface{} {
 	return v
 }
 
