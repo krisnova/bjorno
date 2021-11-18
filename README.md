@@ -1,6 +1,6 @@
 # bjorno
 
-Bjorno is a recursive HTTP web server. 
+Bjorno is a recursive HTTP web server. It can be used with [hugo](https://github.com/gohugoio/hugo) and themes like [docsy](https://github.com/google/docsy) to add dynamic data to your website at runtime.
 
 Bjorno serves static content, and also offers the following features. 
 
@@ -12,20 +12,20 @@ Bjorno serves static content, and also offers the following features.
 
 You can build a custom application in Go and vendor bjorno directly into your program.
 
-#### sample/index.html
+## sample/index.html
 
 ```html
 <html>
-<head>
-<title>{{ .Name }}</title>
-</head>
+  <head>
+    <title>{{ .Name }}</title>
+  </head>
 
-<body>
-<div align="center">
-    <h2>Welcome to {{ .Name }}</h2>
-    <p>My nickname is {{ .Nickname }}</p>
-</div>
-</body>
+  <body>
+    <div align="center">
+      <h2>Welcome to {{ .Name }}</h2>
+      <p>My nickname is {{ .Nickname }}</p>
+    </div>
+  </body>
 </html>
 ```
 
