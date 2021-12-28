@@ -26,6 +26,13 @@ const (
 	StatusDefault500 string = `500 server error (bjorno)`
 	StatusDefault5XX string = `5xx server error (bjorno)`
 	EndpointRoot     string = "/"
+
+	// DefaultCacheMaxAgeSeconds
+	//
+	// Default: 1 year
+	//
+	// https://web.dev/uses-long-cache-ttl/?utm_source=lighthouse&utm_medium=devtools
+	DefaultCacheMaxAgeSeconds int = 31536000
 )
 
 // ServerConfig is the WebServer configuration component of bjorno

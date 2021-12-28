@@ -162,6 +162,7 @@ func (rh *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Write(rh.Config.Content500)
 		return
 	}
+	w.Header().Add("Cache-Control", fmt.Sprintf("max-age=%d", DefaultCacheMaxAgeSeconds))
 	w.WriteHeader(http.StatusOK)
 	w.Write(iFile.Bytes())
 }
